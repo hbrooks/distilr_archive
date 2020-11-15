@@ -1,0 +1,1 @@
+docker exec -it redis_cache bash

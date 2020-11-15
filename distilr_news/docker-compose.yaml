@@ -1,0 +1,169 @@
+version: '3'
+services:
+  mysql_relational_database:
+    container_name: mysql_relational_database
+    image: mysql:latest
+    volumes:
+      - persisted_mysql_volume:/var/lib/mysql
+    ports:
+      - 3306:3306
+    env_file:
+      - ./shared/local.env
+    networks:
+      - relational_database_network
+
+  api_user_management:
+    container_name: api_user_management
+    build:
+      context: .
+      dockerfile: ./api_user_management/Dockerfile
+    command:  ["flask", "run" , "--port", "5000", "--host", "0.0.0.0", "--reload", ] # "--cert", "/usr/src/api_user_management/ssl/distilr_news.csr", "--key", "/usr/src/api_user_management/ssl/distilr_news.key"]
+    # healthcheck:
+    #   test: ["CMD", "curl", "http://localhost:5000/healthCheck"]
+    #   interval: 3s
+    #   timeout: 1s
+    ports:
+      - 5000:5000
+    env_file:
+      - ./shared/local.env
+    environment:
+      FLASK_ENV: development
+      FLASK_APP: api_user_management
+      FLASK_DEBUG: 0 # Needed, but its not entirely clear why... See https://github.com/ga4gh/ga4gh-server/issues/791
+    volumes:
+      - ./api_template/api_template/server_utilities.py:/usr/src/api_user_management/api_user_management/server_utilities.py
+      - ./api_template/api_template/request_utilities.py:/usr/src/api_user_management/api_user_management/request_utilities.py
+      - ./api_template/api_template/models/cache_connection_manager.py:/usr/src/api_user_management/api_user_management/models/cache_connection_manager.py
+      # For the time being, all exceptionss are coming from the shared code.  Maybe later we'll split it into external/internal.
+      - ./api_template/api_template/exceptions:/usr/src/api_user_management/api_user_management/exceptions
+      - ./api_user_management/api_user_management/__init__.py:/usr/src/api_user_management/api_user_management/__init__.py
+      - ./api_user_management/api_user_management/models:/usr/src/api_user_management/api_user_management/models
+      - ./api_user_management/api_user_management/views:/usr/src/api_user_management/api_user_management/views
+      - ./api_user_management/api_user_management/test:/usr/src/api_user_management/api_user_management/test
+      - ./api_template/api_template/models/database_connection_manager.py:/usr/src/api_user_management/api_user_management/models/database_connection_manager.py
+      - ./api_template/api_template/test/template_utilities.py:/usr/src/api_user_management/api_user_management/test/template_utilities.py
+    networks:
+      - relational_database_network
+      - backend_service_network
+      - redis_cache_network
+    depends_on:
+      - mysql_relational_database
+      - redis_cache
+  
+  api_word_timelines:
+    container_name: api_word_timelines
+    build:
+      context: .
+      dockerfile: ./api_word_timelines/Dockerfile
+    command:  ["flask", "run" , "--port", "5010", "--host", "0.0.0.0", "--reload"] # "--cert", "/usr/src/api_word_timelines/ssl/distilr_news.csr", "--key", "/usr/src/api_word_timelines/ssl/distilr_news.key", ]
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:5010/healthCheck"]
+      interval: 3s
+      timeout: 1s
+    ports:
+      - 5010:5010
+    env_file:
+      - ./shared/local.env
+    environment:
+      FLASK_ENV: development
+      FLASK_APP: api_word_timelines
+      FLASK_DEBUG: 0 # Needed, but its not entirely clear why... See https://github.com/ga4gh/ga4gh-server/issues/791
+    volumes:
+      - ./api_template/api_template/server_utilities.py:/usr/src/api_word_timelines/api_word_timelines/server_utilities.py
+      - ./api_template/api_template/request_utilities.py:/usr/src/api_word_timelines/api_word_timelines/request_utilities.py
+      - ./api_template/api_template/exceptions:/usr/src/api_word_timelines/api_word_timelines/exceptions
+      - ./api_template/api_template/models/cache_connection_manager.py:/usr/src/api_word_timelines/api_word_timelines/models/cache_connection_manager.py
+      - ./api_word_timelines/api_word_timelines/__init__.py:/usr/src/api_word_timelines/api_word_timelines/__init__.py
+      - ./api_word_timelines/api_word_timelines/config:/usr/src/api_word_timelines/api_word_timelines/config
+      - ./api_word_timelines/api_word_timelines/models:/usr/src/api_word_timelines/api_word_timelines/models
+      - ./api_word_timelines/api_word_timelines/views:/usr/src/api_word_timelines/api_word_timelines/views
+      - ./api_word_timelines/api_word_timelines/test:/usr/src/api_word_timelines/api_word_timelines/test
+      - ./api_template/api_template/models/database_connection_manager.py:/usr/src/api_word_timelines/api_word_timelines/models/database_connection_manager.py
+      - ./api_template/api_template/test/template_utilities.py:/usr/src/api_word_timelines/api_word_timelines/test/template_utilities.py
+    networks:
+      - relational_database_network
+      - backend_service_network
+      - redis_cache_network
+    depends_on:
+      - mysql_relational_database
+      - redis_cache
+
+  api_distilr_news:
+    container_name: api_distilr_news
+    build:
+      context: .
+      dockerfile: ./api_distilr_news/Dockerfile
+    command:  ["flask", "run" , "--port", "6001", "--host", "0.0.0.0", "--reload",  ] #"--cert", "/usr/src/api_distilr_news/ssl/distilr_news.csr", "--key", "/usr/src/api_distilr_news/ssl/distilr_news.key", ]
+    # healthcheck:
+    #   test: ["CMD", "curl", "http://localhost:6001/healthCheck"]
+    #   interval: 3s
+    #   timeout: 1s
+    ports:
+      - 6001:6001
+    environment:
+      FLASK_ENV: development
+      FLASK_APP: api_distilr_news
+      FLASK_DEBUG: 0 # Needed, but its not entirely clear why... See https://github.com/ga4gh/ga4gh-server/issues/791
+    volumes:
+      - ./api_template/api_template/server_utilities.py:/usr/src/api_distilr_news/api_distilr_news/server_utilities.py
+      - ./api_template/api_template/request_utilities.py:/usr/src/api_distilr_news/api_distilr_news/request_utilities.py
+      - ./api_template/api_template/exceptions:/usr/src/api_distilr_news/api_distilr_news/exceptions
+      - ./api_distilr_news/api_distilr_news/__init__.py:/usr/src/api_distilr_news/api_distilr_news/__init__.py
+      - ./api_distilr_news/api_distilr_news/config:/usr/src/api_distilr_news/api_distilr_news/config
+      - ./api_distilr_news/api_distilr_news/models:/usr/src/api_distilr_news/api_distilr_news/models
+      - ./api_distilr_news/api_distilr_news/views:/usr/src/api_distilr_news/api_distilr_news/views
+    networks:
+      - backend_service_network
+    depends_on:
+      - api_word_timelines
+      - api_user_management
+
+  ui_distilr_news:
+    container_name: ui_distilr_news
+    build:
+      context: .
+      dockerfile: ./ui_distilr_news/Dockerfile
+    command:  ["npm", "start"]
+    ports:
+      - 7000:7000
+    networks:
+      - external_network
+      - backend_service_network
+    depends_on:
+      - api_distilr_news
+      # - backend_nginx
+    volumes:
+      - ./ui_distilr_news/:/usr/src/ui_distilr_news
+
+  # backend_nginx:
+  #   container_name: backend_nginx
+  #   image: "nginx:1.13.5"
+  #   ports:
+  #     - "8080:80"
+  #   # volumes:
+  #   #   - ./backend_nginx/conf.d:/etc/nginx/conf.d
+  #   networks:
+  #     - external_network
+  #   depends_on: 
+  #     - api_distilr_news
+
+  redis_cache:
+    image: redis
+    container_name: redis_cache
+    expose:
+      - 6379 # TODO: Switch.
+    networks:
+      - redis_cache_network
+  
+networks:
+  redis_cache_network: 
+    driver: bridge
+  relational_database_network:
+    driver: bridge
+  external_network: # Public facing.
+    driver: bridge
+  backend_service_network: # Service to service communication.
+    driver: bridge
+
+volumes:
+  persisted_mysql_volume: # Persists MySQL data.

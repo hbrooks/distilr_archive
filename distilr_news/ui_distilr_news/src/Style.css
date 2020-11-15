@@ -1,0 +1,98 @@
+:root {
+  --color1: black;
+  --color2: #red;
+  --color3: #green;
+  --color4: #yellow;
+  --color5: #black;
+  --homepage-background: #white;
+  --button-background: #CDCDCD;
+  --font1-serif: 'Jomolhari', serif;
+  --font1-sans-serif: 'Jomolhari', sans-serif;
+}
+
+h1 {
+  font-family: var(--font1-sans-serif);
+}
+h3 {
+  font-family: var(--font1-sans-serif);
+}
+h4 {
+  font-family: var(--font1-sans-serif);
+}
+p {
+    font-family: var(--font1-serif);
+}
+
+
+
+#textLogo {
+  /* margin-bottom: -15px; */
+  color: var(--color5);
+  font-family: var(--font1-sans-serif);
+  font-weight: lighter;
+  font-size: 128px;
+  margin:0;
+
+}
+#textSubLogo {
+  color: var(--color4);
+  font-family: var(--font1-sans-serif);
+  font-weight: lighter;
+  margin:0;
+  margin-bottom: 15px;
+  font-size: 28px;
+}
+#homeExplanationText {
+  width: 20h;
+  margin-top: 300px;
+  text-align: center;
+  font-family: var(--font1-serif);
+  font-size: 18px;
+  margin:0;
+}
+
+/* Divs: */
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Removes blue border from in focus <input>'s */
+input:focus {
+  outline: 0;
+}
+
+/* Buttons: */
+.button {
+  font-family: var(--font1-sans-serif);
+  background-color: var(--button-background);
+  border: 2px solid var(--button-background);
+  font-size: 24px;
+  cursor: pointer;
+  border-radius: 12px;
+  text-align: center;
+  text-decoration: none; /* Needed to remove underlines. */
+
+  /* Hover times. See https://www.w3schools.com/css/css3_buttons.asp */
+  -webkit-transition-duration: 0.4s; /* Safari */
+  transition-duration: 0.4s;
+}
+
+.button:hover {
+  border: 2px solid black;
+}
+
+.button.small {
+  padding: 10px 10px;
+  margin-right: 8px;
+  margin-left: 8px;
+  width: 80px;
+  height :24px;
+}
+.button.medium {
+  margin-right: 8px;
+  margin-left: 8px;
+  width: 150px;
+  height :42px;
+}
